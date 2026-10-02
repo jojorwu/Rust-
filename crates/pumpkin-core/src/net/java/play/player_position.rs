@@ -78,7 +78,7 @@ impl JavaClient {
         }
         // y = feet Y
         let position = packet.position;
-        if position.x.is_nan() || position.y.is_nan() || position.z.is_nan() {
+        if !position.x.is_finite() || !position.y.is_finite() || !position.z.is_finite() {
             self.try_kick(&TextComponent::translate_cross(
                 translation::java::MULTIPLAYER_DISCONNECT_INVALID_PLAYER_MOVEMENT,
                 translation::java::MULTIPLAYER_DISCONNECT_INVALID_PLAYER_MOVEMENT,

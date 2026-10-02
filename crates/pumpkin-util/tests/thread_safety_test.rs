@@ -41,3 +41,13 @@ fn test_atomic_f32_store_and_load() {
     val.store(42.0, Ordering::SeqCst);
     assert!((val.load(Ordering::SeqCst) - 42.0).abs() < f32::EPSILON);
 }
+
+#[test]
+fn test_atomic_f32_zero_normalization() {
+    let val = AtomicF32::new(-0.0);
+    assert_eq!(val.load(Ordering::SeqCst).to_bits(), 0.0f32.to_bits());
+
+    let res = val.compare_exchange(0.0, 10.0, Ordering::SeqCst, Ordering::SeqCst);
+    assert!(res.is_ok());
+    assert_eq!(val.load(Ordering::SeqCst), 10.0);
+}

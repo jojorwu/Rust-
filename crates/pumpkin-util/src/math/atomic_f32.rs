@@ -7,6 +7,11 @@ pub struct AtomicF32 {
 }
 
 impl AtomicF32 {
+    /// Normalizes float bits to ensure `-0.0` and `+0.0` share identical bit representations (`+0.0`).
+    const fn normalize(value: f32) -> f32 {
+        if value == 0.0 { 0.0 } else { value }
+    }
+
     /// Creates a new `AtomicF32` initialized with `value`.
     ///
     /// # Arguments
@@ -16,7 +21,7 @@ impl AtomicF32 {
     /// A new `AtomicF32` instance.
     #[must_use]
     pub const fn new(value: f32) -> Self {
-        let as_u32 = value.to_bits();
+        let as_u32 = Self::normalize(value).to_bits();
         Self {
             storage: AtomicU32::new(as_u32),
         }
@@ -28,7 +33,7 @@ impl AtomicF32 {
     /// * `value` – The new float to store.
     /// * `ordering` – The memory ordering for the store operation.
     pub fn store(&self, value: f32, ordering: Ordering) {
-        let as_u32 = value.to_bits();
+        let as_u32 = Self::normalize(value).to_bits();
         self.storage.store(as_u32, ordering);
     }
 
@@ -62,8 +67,8 @@ impl AtomicF32 {
         success: Ordering,
         failure: Ordering,
     ) -> Result<f32, f32> {
-        let current_bits = current.to_bits();
-        let new_bits = new.to_bits();
+        let current_bits = Self::normalize(current).to_bits();
+        let new_bits = Self::normalize(new).to_bits();
         self.storage
             .compare_exchange(current_bits, new_bits, success, failure)
             .map(f32::from_bits)
